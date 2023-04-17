@@ -7,6 +7,8 @@ import sklearn.linear_model
 import scipy.io
 import random
 import cv2
+import pdb
+import math
 
 def sigmoid(x):
     """
@@ -722,9 +724,9 @@ def model(X, Y, X_val, Y_val, optimizer, learning_rate = 0.001, mini_batch_size 
                 cost_total += compute_cost(a3, minibatch_Y)
             else:
                 if l_reg_type == 1:
-                  cost_total += compute_cost_with_regularization_L1(a3, Y, parameters, lambd)
+                  cost_total += compute_cost_with_regularization_L1(a3, minibatch_Y, parameters, lambd)
                 else:
-                  cost_total += compute_cost_with_regularization_L2(a3, Y, parameters, lambd)
+                  cost_total += compute_cost_with_regularization_L2(a3, minibatch_Y, parameters, lambd)
                 
             #############################################################################
             # Backward propagation.
@@ -1069,3 +1071,37 @@ def backward_propagation_with_dropout(X, Y, cache, keep_prob):
                  "dZ1": dZ1, "dW1": dW1, "db1": db1}
     
     return gradients
+
+
+    def update_lr(learning_rate0, epoch_num, decay_rate):
+      """
+      Calculates updated the learning rate using exponential weight decay.
+      
+      Arguments:
+      learning_rate0 -- Original learning rate. Scalar
+      epoch_num -- Epoch number. Integer
+      decay_rate -- Decay rate. Scalar
+
+      Returns:
+      learning_rate -- Updated learning rate. Scalar 
+      """
+      learning_rate = (1 / (1 + decay_rate * epoch_num)) * learning_rate0
+    
+    return learning_rate
+
+    def schedule_lr_decay(learning_rate0, epoch_num, decay_rate, time_interval=1000):
+      """
+      Calculates updated the learning rate using exponential weight decay.
+      
+      Arguments:
+      learning_rate0 -- Original learning rate. Scalar
+      epoch_num -- Epoch number. Integer.
+      decay_rate -- Decay rate. Scalar.
+      time_interval -- Number of epochs where you update the learning rate.
+
+      Returns:
+      learning_rate -- Updated learning rate. Scalar 
+      """
+      learning_rate = (1 / (1 + decay_rate * math.floor(epoch_num / time_interval))) * learning_rate0
+      
+    return learning_rate
