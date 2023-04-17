@@ -215,13 +215,12 @@ def predict(X, y, parameters):
         else:
             p[0,i] = 0
 
-    # print results
 
-    #print ("predictions: " + str(p[0,:]))
-    #print ("true labels: " + str(y[0,:]))
-    print("Accuracy: "  + str(np.mean((p[0,:] == y[0,:]))))
-    
-    return p
+    accuracy = np.mean((p[0,:] == y[0,:]))
+
+    predictions = p
+
+    return predictions, accuracy
 
 def compute_cost(a3, Y):
     """
@@ -674,8 +673,13 @@ def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, min
     """
 
     L = len(layers_dims)             # number of layers in the neural networks
+    
     training_costs    = []           # to keep track of the training cost
     validation_costs  = []           # validation costs
+
+    training_accuracies   = []
+    validation_accuracies = []
+
 
     t    = 0                         # initializing the counter required for Adam update
     seed = 10                        # For grading purposes, so that your "random" minibatches are the same as ours
@@ -759,15 +763,10 @@ def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, min
 
         #############################################################################
         # Logging 
-        
-        # Display progress
-        if print_cost and i % 100 == 0:
-            print("Cost after iteration {}: {}".format(i, cost_avg))
-            if decay:
-                print("learning rate after epoch %i: %f"%(i, learning_rate))
-            
+
+
         # Store training and validation performance for plotting the results
-        if print_cost and i % 100 == 0:
+        if i % 100 == 0 or i == num_epochs-1:
             training_costs.append(cost_avg)
 
             # Make a prediction
@@ -782,10 +781,30 @@ def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, min
                 else:
                   val_cost = compute_cost_with_regularization_L2(pred, Y_val, parameters, lambd)
 
-            print(f'Validation cost: {val_cost}')
-            validation_costs.append(val_cost)
+            val_cost_avg = val_cost/X_val.shape[1]
+            
+            validation_costs.append(val_cost_avg)
+
+            # Accuracy
+            _, accuracy_t = predict(X, Y, parameters)
+            _, accuracy_v = predict(X_val, Y_val, parameters)
+
+            training_accuracies.append(accuracy_t)
+            validation_accuracies.append(accuracy_v)
+        
+        # Display progress
+        if print_cost and i % 1000 == 0:
+            print("Cost after iteration {}: {}".format(i, cost_avg))
+
+            print(f'Validation cost: {val_cost_avg}')
+            
+
+            if decay:
+                print("learning rate after epoch %i: %f"%(i, learning_rate))
+            
+
   
-    return parameters, training_costs, validation_costs
+    return parameters, training_costs, validation_costs, training_accuracies, validation_accuracies
 
 def compute_cost_with_regularization_L1(A3, Y, parameters, lambd):
     """
