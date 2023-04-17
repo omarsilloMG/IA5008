@@ -651,7 +651,7 @@ def update_parameters_with_adam(parameters, grads, v, s, t, learning_rate = 0.01
 
     return parameters, v, s, v_corrected, s_corrected
 
-def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 1000, print_cost = True, lambd = 0, keep_prob = 1, l_reg_type=1, decay=None, decay_rate=1):
+def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 1000, print_cost = True, lambd = 0, keep_prob = 1, l_reg_type=1, decay="", decay_rate=1):
 
     """
     Implements a three-layer neural network: LINEAR->RELU->LINEAR->RELU->LINEAR->SIGMOID.
@@ -761,8 +761,12 @@ def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, min
         
         #############################################################################
         # Decay
-        if decay:
-            learning_rate = decay(learning_rate0, i, decay_rate)
+        if decay == "schedule":
+          learning_rate = schedule_lr_decay(learning_rate0, i, decay_rate)
+        elif decay == "exponential":
+          learning_rate = update_lr(learning_rate0, i, decay_rate)
+        else:
+          pass
 
         #############################################################################
         # Logging 
@@ -770,40 +774,40 @@ def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, min
 
         # Store training and validation performance for plotting the results
         if i % 100 == 0 or i == num_epochs-1:
-            training_costs.append(cost_avg)
+          training_costs.append(cost_avg)
 
-            # Make a prediction
-            pred, dummy = forward_propagation(X_val, parameters)
+          # Make a prediction
+          pred, dummy = forward_propagation(X_val, parameters)
 
-            # Track the performance on the validation set
-            if lambd == 0:
-                val_cost = compute_cost(pred, Y_val)
+          # Track the performance on the validation set
+          if lambd == 0:
+            val_cost = compute_cost(pred, Y_val)
+          else:
+            if l_reg_type == 1:
+              val_cost = compute_cost_with_regularization_L1(pred, Y_val, parameters, lambd)
             else:
-                if l_reg_type == 1:
-                  val_cost = compute_cost_with_regularization_L1(pred, Y_val, parameters, lambd)
-                else:
-                  val_cost = compute_cost_with_regularization_L2(pred, Y_val, parameters, lambd)
+              val_cost = compute_cost_with_regularization_L2(pred, Y_val, parameters, lambd)
 
-            val_cost_avg = val_cost/X_val.shape[1]
-            
-            validation_costs.append(val_cost_avg)
+          val_cost_avg = val_cost/X_val.shape[1]
+          
+          validation_costs.append(val_cost_avg)
 
-            # Accuracy
-            _, accuracy_t = predict(X, Y, parameters)
-            _, accuracy_v = predict(X_val, Y_val, parameters)
+          # Accuracy
+          _, accuracy_t = predict(X, Y, parameters)
+          _, accuracy_v = predict(X_val, Y_val, parameters)
 
-            training_accuracies.append(accuracy_t)
-            validation_accuracies.append(accuracy_v)
+          training_accuracies.append(accuracy_t)
+          validation_accuracies.append(accuracy_v)
         
         # Display progress
         if print_cost and i % 1000 == 0:
-            print("Cost after iteration {}: {}".format(i, cost_avg))
+          print("Cost after iteration {}: {}".format(i, cost_avg))
 
-            print(f'Validation cost: {val_cost_avg}')
-            
+          print(f'Validation cost: {val_cost_avg}')
+          
 
-            if decay:
-                print("learning rate after epoch %i: %f"%(i, learning_rate))
+          if decay:
+            print("learning rate after epoch %i: %f"%(i, learning_rate))
             
 
   
