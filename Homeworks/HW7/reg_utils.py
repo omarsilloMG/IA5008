@@ -83,12 +83,11 @@ def initialize_parameters(layer_dims):
     L = len(layer_dims) # number of layers in the network
 
     for l in range(1, L):
-        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) / np.sqrt(layer_dims[l-1])
+        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1])*  np.sqrt(2 / layer_dims[l-1])
         parameters['b' + str(l)] = np.zeros((layer_dims[l], 1))
         
-        assert(parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l-1]))
-        assert(parameters['b' + str(l)].shape == (layer_dims[l], 1))
-
+        assert parameters['W' + str(l)].shape[0] == layer_dims[l], layer_dims[l-1]
+        assert parameters['W' + str(l)].shape[0] == layer_dims[l], 1
         
     return parameters
 
@@ -650,7 +649,7 @@ def update_parameters_with_adam(parameters, grads, v, s, t, learning_rate = 0.01
 
     return parameters, v, s, v_corrected, s_corrected
 
-def model(X, Y, X_val, Y_val, optimizer, learning_rate = 0.001, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 1000, print_cost = True, lambd = 0, keep_prob = 1, l_reg_type=1, decay=None, decay_rate=1):
+def model(X, Y, X_val, Y_val, layers_dims, optimizer, learning_rate = 0.001, mini_batch_size = 64, beta = 0.9, beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 1000, print_cost = True, lambd = 0, keep_prob = 1, l_reg_type=1, decay=None, decay_rate=1):
 
     """
     Implements a three-layer neural network: LINEAR->RELU->LINEAR->RELU->LINEAR->SIGMOID.
@@ -673,23 +672,21 @@ def model(X, Y, X_val, Y_val, optimizer, learning_rate = 0.001, mini_batch_size 
     Returns:
     parameters -- parameters learned by the model. They can then be used to predict.
     """
-        
-    grads = {}
-    training_costs    = []                # to keep track of the training cost
-    validation_costs  = []                # validation costs
-    m = X.shape[1]                        # number of examples
-    layers_dims = [X.shape[0], 20, 3, 1]
 
+    L = len(layers_dims)             # number of layers in the neural networks
+    training_costs    = []           # to keep track of the training cost
+    validation_costs  = []           # validation costs
 
-    t = 0                            # initializing the counter required for Adam update
+    t    = 0                         # initializing the counter required for Adam update
     seed = 10                        # For grading purposes, so that your "random" minibatches are the same as ours
+    m = X.shape[1]                   # number of examples
+
     lr_rates = []
     learning_rate0 = learning_rate   # the original learning rate
 
     
     # Initialize parameters dictionary.
-    #parameters = initialize_parameters(layers_dims)
-    parameters = initialize_parameters_deep(layers_dims)
+    parameters = initialize_parameters(layers_dims)
     
     # Initialize the optimizer
     if optimizer == "gd":
