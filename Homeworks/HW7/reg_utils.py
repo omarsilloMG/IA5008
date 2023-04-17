@@ -20,6 +20,9 @@ def sigmoid(x):
     Return:
     s -- sigmoid(x)
     """
+    # Clip the input to the range of -500 to 500 (avoids overflow errors)
+    x = np.clip(x, -500, 500)
+
     s = 1/(1+np.exp(-x))
     return s
 
